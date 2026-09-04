@@ -1,9 +1,12 @@
 // api/applications.js - Loan Applications API (Updated with Auth and File Upload)
-const { getConnection } = require("../../lib/db");
-const { getCurrentUser } = require("../../lib/auth");
+const { getConnection } = require("../lib/db");
+const { getCurrentUser } = require("../lib/auth");
 
 module.exports = async (req, res) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
+  // SECURITY (P2 #12): Restrict CORS instead of wildcard
+  const allowedOrigin = process.env.ALLOWED_ORIGIN || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "*");
+  res.setHeader("Access-Control-Allow-Origin", allowedOrigin);
+  res.setHeader("Access-Control-Allow-Credentials", "true");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
@@ -59,7 +62,8 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: "Method not allowed" });
   } catch (error) {
     console.error("Database error:", error);
-    return res.status(500).json({ error: "Database error: " + error.message });
+    // SECURITY (P2 #11): Generic error to client
+    return res.status(500).json({ error: "An error occurred while processing your request" });
   } finally {
     if (connection) await connection.end();
   }

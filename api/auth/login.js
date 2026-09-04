@@ -1,6 +1,7 @@
 // api/auth/login.js - User login
 const { getConnection } = require('../../lib/db');
-const { verifyPassword, generateToken } = require('../../lib/auth');
+const { verifyPassword, generateToken, setAuthCookie, verifyOrigin } = require('../../lib/auth');
+const { rateLimit } = require('../../lib/security');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {

@@ -1,5 +1,6 @@
 // api/auth/login-page.js - Login Page (HTML)
 const { getCurrentUser } = require("../../lib/auth");
+const { setSecurityHeaders } = require("../../lib/security");
 
 module.exports = async (req, res) => {
   // If already logged in, redirect to dashboard
@@ -39,11 +40,6 @@ module.exports = async (req, res) => {
             <div class="mt-6 text-center text-sm text-gray-500">
                 <p>Don\'t have an account? <a href="/register" class="text-[#1B365D] font-semibold hover:underline">Register here</a></p>
             </div>
-            <div class="mt-4 p-3 bg-blue-50 rounded-lg text-xs text-blue-700">
-                <p class="font-semibold">Demo Admin Account:</p>
-                <p>Email: admin@campusloan.com</p>
-                <p>Password: admin123</p>
-            </div>
         </div>
     </div>
     <script>
@@ -75,5 +71,6 @@ module.exports = async (req, res) => {
 </html>`;
 
   res.setHeader("Content-Type", "text/html");
+  setSecurityHeaders(res); // SECURITY (P3 #20)
   res.send(html);
 };

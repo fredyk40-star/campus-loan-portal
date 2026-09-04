@@ -3,6 +3,7 @@ const { getConnection } = require('../../lib/db');
 const { requireAdmin } = require('../../lib/auth');
 const { notifyStatusChange } = require('../../lib/notifications');
 const { generateRepaymentSchedule } = require('../../lib/repayments');
+const { isValidInt, isValidNumber, escapeHtml } = require('../../lib/security');
 
 module.exports = async (req, res) => {
   // Verify admin access

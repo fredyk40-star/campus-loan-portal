@@ -2,6 +2,7 @@
 const { getConnection } = require('../../lib/db');
 const { getCurrentUser } = require('../../lib/auth');
 const { getRepaymentSchedule } = require('../../lib/repayments');
+const { isValidInt } = require('../../lib/security');
 
 module.exports = async (req, res) => {
   if (req.method !== 'GET') {

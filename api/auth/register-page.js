@@ -1,5 +1,6 @@
 // api/auth/register-page.js - Register Page (HTML)
 const { getCurrentUser } = require("../../lib/auth");
+const { setSecurityHeaders } = require("../../lib/security");
 
 module.exports = async (req, res) => {
   const user = await getCurrentUser(req);
@@ -92,5 +93,6 @@ module.exports = async (req, res) => {
 </html>`;
 
   res.setHeader("Content-Type", "text/html");
+  setSecurityHeaders(res); // SECURITY (P3 #20)
   res.send(html);
 };

@@ -1,4 +1,5 @@
 // api/index.js - Landing Page
+const { setSecurityHeaders } = require("../lib/security");
 module.exports = (req, res) => {
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -31,6 +32,7 @@ module.exports = (req, res) => {
 </body>
 </html>`;
 
-  res.setHeader('Content-Type', 'text/html');
+  res.setHeader("Content-Type", "text/html");
+  setSecurityHeaders(res); // SECURITY (P3 #20)
   res.send(html);
 };

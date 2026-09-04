@@ -1,6 +1,7 @@
 // api/admin/index.js - Admin Dashboard Page
 const { getConnection } = require("../../lib/db");
 const { getCurrentUser } = require("../../lib/auth");
+const { setSecurityHeaders } = require("../../lib/security");
 
 function escapeHtml(str) {
   if (!str) return "";
@@ -87,6 +88,7 @@ module.exports = async (req, res) => {
 </html>`;
 
     res.setHeader("Content-Type", "text/html");
+  setSecurityHeaders(res); // SECURITY (P3 #20)
     res.send(html);
   } finally {
     await connection.end();

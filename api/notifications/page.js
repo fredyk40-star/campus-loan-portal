@@ -1,6 +1,7 @@
 // api/notifications/page.js - Notifications Page
 const { getCurrentUser } = require("../../lib/auth");
 const { getNotifications, markAllAsRead } = require("../../lib/notifications");
+const { setSecurityHeaders } = require("../../lib/security");
 
 function escapeHtml(str) {
   if (!str) return "";
@@ -16,7 +17,7 @@ module.exports = async (req, res) => {
 
   try {
     const notifications = await getNotifications(user.id);
-    await markAllAsRead(user.id);
+    // SECURITY (P2 #13): Removed auto markAllAsRead - users mark read explicitly
 
     const notifHtml = notifications.length === 0
       ? `<div class="text-center py-12"><p class="text-gray-400">No notifications yet</p></div>`
@@ -49,6 +50,7 @@ module.exports = async (req, res) => {
 </html>`;
 
     res.setHeader("Content-Type", "text/html");
+  setSecurityHeaders(res); // SECURITY (P3 #20)
     res.send(html);
   } catch (error) {
     console.error("Notifications page error:", error);

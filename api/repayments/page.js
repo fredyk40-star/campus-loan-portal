@@ -1,6 +1,8 @@
 // api/repayments/page.js - Repayment Schedule View Page
 const { getConnection } = require("../../lib/db");
 const { getCurrentUser } = require("../../lib/auth");
+const { isValidInt, escapeAttr } = require("../../lib/security");
+const { setSecurityHeaders } = require("../../lib/security");
 
 function escapeHtml(str) {
   if (!str) return "";
@@ -18,8 +20,9 @@ module.exports = async (req, res) => {
     return res.end();
   }
 
-  const loanId = req.query.loan_id || req.url.split("loan_id=")[1];
-  if (!loanId) {
+  // SECURITY (P1 #6): Validate loan_id as integer, use req.query only
+  const loanId = req.query.loan_id;
+  if (!loanId || !isValidInt(loanId, 1, Number.MAX_SAFE_INTEGER)) {
     return res.status(400).send("<p>Loan ID required. <a href='/dashboard'>Go to Dashboard</a></p>");
   }
 
@@ -68,7 +71,7 @@ module.exports = async (req, res) => {
     <nav class="bg-[#1B365D] text-white shadow-md"><div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center"><h1 class="text-xl font-bold">CampusLoan Portal</h1><a href="/dashboard" class="text-sm hover:underline">Back to Dashboard</a></div></nav>
     <main class="max-w-7xl mx-auto px-6 py-8">
         <h2 class="text-2xl font-bold text-[#1B365D] mb-2">Repayment Schedule</h2>
-        <p class="text-gray-500 mb-6">Loan #${loanId} - ${escapeHtml(loan?.full_name || "")} (${escapeHtml(loan?.index_number || "")})</p>
+        <p class="text-gray-500 mb-6">Loan #${escapeAttr(loanId)} - ${escapeHtml(loan?.full_name || "")} (${escapeHtml(loan?.index_number || "")})</p>
         <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
             <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100"><p class="text-xs text-gray-500">Loan Amount</p><p class="text-lg font-bold text-[#1B365D]">${formatCurrency(loan?.amount_requested || 0)}</p></div>
             <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100"><p class="text-xs text-gray-500">Total Principal</p><p class="text-lg font-bold text-[#1B365D]">${formatCurrency(totalPrincipal)}</p></div>
@@ -84,6 +87,7 @@ module.exports = async (req, res) => {
 </html>`;
 
     res.setHeader("Content-Type", "text/html");
+  setSecurityHeaders(res); // SECURITY (P3 #20)
     res.send(html);
   } finally {
     await connection.end();

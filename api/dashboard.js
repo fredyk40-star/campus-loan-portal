@@ -1,7 +1,8 @@
 // api/dashboard.js - Student Dashboard (Updated with Auth and Notifications)
-const { getConnection } = require("../../lib/db");
-const { getCurrentUser } = require("../../lib/auth");
-const { getNotifications } = require("../../lib/notifications");
+const { getConnection } = require("../lib/db");
+const { getCurrentUser } = require("../lib/auth");
+const { getNotifications } = require("../lib/notifications");
+const { setSecurityHeaders } = require("../lib/security");
 
 function escapeHtml(str) {
   if (!str) return "";
@@ -137,6 +138,7 @@ module.exports = async (req, res) => {
 </html>`;
 
     res.setHeader("Content-Type", "text/html");
+  setSecurityHeaders(res); // SECURITY (P3 #20)
     res.send(html);
   } catch (error) {
     console.error("Dashboard error:", error);

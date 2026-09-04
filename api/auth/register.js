@@ -1,6 +1,7 @@
 // api/auth/register.js - User registration
 const { getConnection } = require('../../lib/db');
-const { hashPassword, generateToken } = require('../../lib/auth');
+const { hashPassword, generateToken, setAuthCookie, verifyOrigin } = require('../../lib/auth');
+const { isValidEmail } = require('../../lib/security');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {

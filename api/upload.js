@@ -1,76 +1,78 @@
-// api/upload.js - File upload to Vercel Blob
-const { handleUpload } = require('@vercel/blob/handle-upload');
+// api/upload.js - File upload with authentication and validation (P1 #7)
+const { getCurrentUser } = require('../lib/auth');
+const { validateFileUpload, MAX_FILE_SIZE } = require('../lib/security');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // For Vercel Blob, we need to use their handleUpload helper
-  // This expects multipart/form-data with a 'file' field
-  
+  // SECURITY (P1 #7): Require authentication for uploads
+  const user = await getCurrentUser(req);
+  if (!user) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+
+  // SECURITY (P1 #7): Enforce request body size limit
+  const contentLength = parseInt(req.headers['content-length']) || 0;
+  if (contentLength > MAX_FILE_SIZE) {
+    return res.status(413).json({ error: 'File size exceeds 5MB limit' });
+  }
+
+  // SECURITY (P1 #7): Validate content type (MIME whitelist)
+  const rawContentType = req.headers['content-type'] || '';
+  const baseType = rawContentType.split(';')[0].trim();
+  const typeCheck = validateFileUpload(baseType, contentLength || MAX_FILE_SIZE);
+  if (!typeCheck.valid) {
+    return res.status(400).json({ error: typeCheck.error });
+  }
+
   try {
-    // Simple base64 file upload handler for serverless
     const chunks = [];
     for await (const chunk of req) {
       chunks.push(chunk);
+      // SECURITY: Abort early if accumulated data exceeds limit
+      const total = chunks.reduce((sum, c) => sum + c.length, 0);
+      if (total > MAX_FILE_SIZE) {
+        return res.status(413).json({ error: 'File size exceeds 5MB limit' });
+      }
     }
     const buffer = Buffer.concat(chunks);
-    
-    // Parse content type
-    const contentType = req.headers['content-type'] || 'application/octet-stream';
-    
-    // For now, return a simulated URL (in production, use Vercel Blob or Cloudinary)
-    // To use Vercel Blob, install: npm install @vercel/blob
-    // Then use: const { put } = require('@vercel/blob');
-    
+
+    // SECURITY (P1 #7): Re-validate actual size
+    const sizeCheck = validateFileUpload(baseType, buffer.length);
+    if (!sizeCheck.valid) {
+      return res.status(400).json({ error: sizeCheck.error });
+    }
+
+    // SECURITY: Generate safe filename (no user input in path)
     const timestamp = Date.now();
     const randomId = Math.random().toString(36).substring(7);
-    const filename = `upload_${timestamp}_${randomId}`;
-    
-    // Simulated upload - replace with actual Vercel Blob integration
-    // const blob = await put(filename, buffer, { access: 'public', token: process.env.BLOB_READ_WRITE_TOKEN });
-    
-    const fileUrl = `https://fake-blob-storage.vercel.app/${filename}`;
-    
-    return res.json({ 
-      url: fileUrl,
-      filename: filename,
-      contentType: contentType,
-      size: buffer.length,
-    });
+    const extension = baseType === 'application/pdf' ? 'pdf' : baseType === 'image/png' ? 'png' : 'jpg';
+    const filename = `upload_${timestamp}_${randomId}.${extension}`;
+
+    // Upload to Vercel Blob when BLOB_READ_WRITE_TOKEN is configured
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+      const { put } = require('@vercel/blob');
+      const blob = await put(filename, buffer, {
+        access: 'public',
+        contentType: baseType,
+        addRandomSuffix: true,
+        token: process.env.BLOB_READ_WRITE_TOKEN,
+      });
+      return res.json({
+        url: blob.url,
+        filename,
+        contentType: baseType,
+        size: buffer.length,
+      });
+    }
+
+    // Fallback: no blob token configured
+    return res.status(503).json({ error: 'File storage is not configured. Set BLOB_READ_WRITE_TOKEN.' });
   } catch (error) {
     console.error('Upload error:', error);
-    return res.status(500).json({ error: 'Upload failed: ' + error.message });
-  }
-};
-
-// Alternative simple upload using base64
-module.exports.base64Upload = async (req, res) => {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  const { filename, contentType, data } = req.body;
-
-  if (!filename || !data) {
-    return res.status(400).json({ error: 'Filename and data are required' });
-  }
-
-  try {
-    // Decode base64 data
-    const buffer = Buffer.from(data, 'base64');
-    
-    // In production, upload to Vercel Blob:
-    // const { put } = require('@vercel/blob');
-    // const blob = await put(filename, buffer, { access: 'public', token: process.env.BLOB_READ_WRITE_TOKEN });
-    
-    const timestamp = Date.now();
-    const fileUrl = `https://fake-blob-storage.vercel.app/${timestamp}_${filename}`;
-    
-    return res.json({ url: fileUrl, size: buffer.length });
-  } catch (error) {
-    console.error('Upload error:', error);
-    return res.status(500).json({ error: 'Upload failed: ' + error.message });
+    // SECURITY (P2 #11): Generic error to client
+    return res.status(500).json({ error: 'Upload failed' });
   }
 };
