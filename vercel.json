@@ -1,7 +1,12 @@
 {
   "version": 2,
+  "builds": [
+    { "src": "api/**/*.js", "use": "@vercel/node" }
+  ],
   "routes": [
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/public/index.php" }
+    { "src": "/", "dest": "/api/index" },
+    { "src": "/calculator", "dest": "/api/calculator" },
+    { "src": "/dashboard", "dest": "/api/dashboard" },
+    { "src": "/api/applications", "dest": "/api/applications" }
   ]
 }

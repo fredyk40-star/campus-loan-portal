@@ -1,1 +1,24 @@
-.env.env
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+package-lock.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Build output
+.next/
+out/
+build/
+
+# Vercel
+.vercel
