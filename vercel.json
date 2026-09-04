@@ -3,6 +3,12 @@
   "rewrites": [
     { "source": "/", "destination": "/api/index" },
     { "source": "/calculator", "destination": "/api/calculator" },
-    { "source": "/dashboard", "destination": "/api/dashboard" }
+    { "source": "/dashboard", "destination": "/api/dashboard" },
+    { "source": "/login", "destination": "/api/auth/login-page" },
+    { "source": "/register", "destination": "/api/auth/register-page" },
+    { "source": "/logout", "destination": "/api/auth/logout" },
+    { "source": "/admin", "destination": "/api/admin/index" },
+    { "source": "/repayments", "destination": "/api/repayments/page" },
+    { "source": "/notifications", "destination": "/api/notifications/page" }
   ]
 }

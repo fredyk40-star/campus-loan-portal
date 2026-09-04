@@ -1,5 +1,0 @@
-Step 7: Next Action Items for Your Group
-
-Connect Your Database: Set up a free cloud database (such as Aiven or PlanetScale), grab your host/user/pass credentials, and insert them into your environment variables.
-
-Involve Your Banking Partners: Have them design the repayment formula rules (e.g., adding an interest percentage or installment timeline algorithm) so you can code it into the backend logic next.
