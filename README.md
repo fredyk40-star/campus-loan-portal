@@ -26,7 +26,7 @@ A transparent student funding and tracking platform built with Node.js serverles
 | Database | TiDB Cloud (MySQL-compatible) with SSL |
 | Authentication | bcryptjs + JWT (jsonwebtoken) |
 | File Storage | Vercel Blob |
-| Email | Resend (simulated, ready for production) |
+| Email | Gmail SMTP (Nodemailer) |
 | CSS | Tailwind CSS (CDN) |
 | Platform | Vercel |
 
@@ -81,10 +81,19 @@ JWT_SECRET=your-super-secret-jwt-key-change-this
 # File Storage (Vercel Blob)
 BLOB_READ_WRITE_TOKEN=your_blob_token
 
-# Email (Resend)
-RESEND_API_KEY=your_resend_api_key
-FROM_EMAIL=noreply@campusloan.com
+# Email Configuration (Gmail SMTP)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_USERNAME=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
+RESEND_FROM_EMAIL=your-email@gmail.com
 ```
+
+### Gmail SMTP Setup
+
+1. Enable 2-Factor Authentication on your Google account
+2. Generate an [App Password](https://myaccount.google.com/apppasswords)
+3. Use the App Password as `SMTP_PASSWORD`
 
 ## Project Structure
 
@@ -117,7 +126,7 @@ campus-loan-portal/
 │   ├── db.js                 # Database connection helper
 │   ├── auth.js               # JWT & authentication helpers
 │   ├── repayments.js         # Amortization calculations
-│   └── notifications.js      # Notification helpers
+│   └── notifications.js      # Notification helpers with Gmail SMTP
 ├── scripts/
 │   └── generate-admin.js     # Generate admin password hash
 ├── migration.sql             # Database schema migration
@@ -187,7 +196,14 @@ Notifications are created automatically when:
 
 Students receive:
 - In-app notifications in dashboard
-- Email notifications (when Resend is configured)
+- Email notifications via Gmail SMTP
+
+### Email Configuration
+
+The system uses Gmail SMTP for sending emails:
+- Status change notifications
+- Payment reminders (future)
+- Welcome emails (future)
 
 ## Deployment to Vercel
 
